@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PAT — Password Analysis Tool</title>
+  <link rel="stylesheet" href="/static/style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+  <!-- Fixed branding -->
+  <div class="brand-tag">PAT</div>
+
+  <!-- Scanline overlay -->
+  <div class="scanlines"></div>
+
+  <!-- ===================== LANDING PAGE ===================== -->
+  <div id="landing" class="page active">
+    <div class="grid-bg"></div>
+    <div class="landing-content">
+      <div class="glitch-wrapper">
+        <h1 class="glitch" data-text="PAT">PAT</h1>
+      </div>
+      <p class="landing-subtitle">Password Analysis Tool</p>
+      <p class="landing-tagline">
+        <span class="type-text" id="typewriter"></span><span class="cursor-blink">█</span>
+      </p>
+      <button class="start-btn" id="startBtn" onclick="enterDashboard()">
+        <span class="btn-text">START ANALYSIS</span>
+        <span class="btn-glow"></span>
+      </button>
+      <div class="landing-stats">
+        <div class="stat"><span class="stat-num">256</span><span class="stat-label">MAX ENTROPY</span></div>
+        <div class="stat-div">|</div>
+        <div class="stat"><span class="stat-num">10B+</span><span class="stat-label">CHECKS/SEC</span></div>
+        <div class="stat-div">|</div>
+        <div class="stat"><span class="stat-num">100%</span><span class="stat-label">PRIVATE</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== DASHBOARD ===================== -->
+  <div id="dashboard" class="page">
+
+    <!-- Top nav bar -->
+    <nav class="top-bar">
+      <button class="nav-back" onclick="goBack()">← BACK</button>
+      <div class="nav-tabs">
+        <button class="nav-tab active" data-tab="analyzer" onclick="switchTab('analyzer', this)">ANALYZER</button>
+        <button class="nav-tab" data-tab="generator" onclick="switchTab('generator', this)">GENERATOR</button>
+        <button class="nav-tab" data-tab="education" onclick="switchTab('education', this)">INTEL</button>
+      </div>
+      <div class="status-dot"><span class="dot-live"></span>LIVE</div>
+    </nav>
+
+    <!-- ========== ANALYZER TAB ========== -->
+    <div id="tab-analyzer" class="tab-content active">
+      <div class="dashboard-grid">
+
+        <!-- LEFT PANEL -->
+        <div class="side-panel left-panel">
+          <div class="panel-header">// THREAT MODEL</div>
+          <div id="threatModel" class="threat-model-content">
+            <div class="threat-idle">
+              <div class="threat-icon">⚡</div>
+              <p>Awaiting input...</p>
+            </div>
+          </div>
+          <div class="panel-header" style="margin-top:16px">// CHAR MATRIX</div>
+          <div id="charMatrix" class="char-matrix">
+            <div class="matrix-row"><span class="matrix-label">Lowercase</span><span id="m-lower" class="matrix-val off">—</span></div>
+            <div class="matrix-row"><span class="matrix-label">Uppercase</span><span id="m-upper" class="matrix-val off">—</span></div>
+            <div class="matrix-row"><span class="matrix-label">Digits</span><span id="m-digit" class="matrix-val off">—</span></div>
+            <div class="matrix-row"><span class="matrix-label">Symbols</span><span id="m-symbol" class="matrix-val off">—</span></div>
+            <div class="matrix-row"><span class="matrix-label">Unique</span><span id="m-unique" class="matrix-val off">—</span></div>
+            <div class="matrix-row"><span class="matrix-label">Length</span><span id="m-length" class="matrix-val off">—</span></div>
+            <div class="matrix-row"><span class="matrix-label">Charset</span><span id="m-charset" class="matrix-val off">—</span></div>
+          </div>
+        </div>
+
+        <!-- CENTER PANEL -->
+        <div class="center-panel">
+
+          <!-- Password Input -->
+          <div class="input-zone">
+            <div class="input-label">// ENTER TARGET PASSWORD</div>
+            <div class="input-wrapper">
+              <input
+                type="password"
+                id="passwordInput"
+                class="password-field"
+                placeholder="Type password to analyze..."
+                autocomplete="off"
+                spellcheck="false"
+              />
+              <button class="toggle-vis" id="toggleVis" onclick="toggleVisibility()">
+                <svg id="eyeIcon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+            </div>
+            <div class="input-meta" id="inputMeta">
+              <span id="metaLength">0 chars</span>
+              <span id="metaEntropy">0 bits entropy</span>
+              <button class="breach-btn" id="breachBtn" onclick="checkBreach()">CHECK BREACH</button>
+            </div>
+          </div>
+
+          <!-- Strength Meter -->
+          <div class="strength-zone">
+            <div class="strength-header">
+              <span class="strength-label">STRENGTH</span>
+              <span id="strengthLabel" class="strength-value">—</span>
+            </div>
+            <div class="strength-bar-container">
+              <div class="strength-bar-track">
+                <div id="strengthBar" class="strength-bar-fill" style="width:0%"></div>
+                <div class="strength-segments">
+                  <div class="seg"></div><div class="seg"></div><div class="seg"></div><div class="seg"></div><div class="seg"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Score Grid -->
+          <div class="score-zone">
+            <div class="score-total-wrap">
+              <div class="score-ring">
+                <svg viewBox="0 0 80 80" class="ring-svg">
+                  <circle cx="40" cy="40" r="32" class="ring-track"/>
+                  <circle cx="40" cy="40" r="32" id="ringProgress" class="ring-progress" stroke-dasharray="201" stroke-dashoffset="201"/>
+                </svg>
+                <div class="ring-label">
+                  <span id="scoreTotal">0</span>
+                  <span class="ring-max">/100</span>
+                </div>
+              </div>
+              <div class="score-breakdown" id="scoreBreakdown">
+                <div class="score-row" data-key="length">
+                  <span class="score-row-label">Length</span>
+                  <div class="score-mini-bar"><div class="score-mini-fill" id="sb-length" style="width:0%"></div></div>
+                  <span class="score-row-val" id="sv-length">0/25</span>
+                </div>
+                <div class="score-row" data-key="complexity">
+                  <span class="score-row-label">Complexity</span>
+                  <div class="score-mini-bar"><div class="score-mini-fill" id="sb-complexity" style="width:0%"></div></div>
+                  <span class="score-row-val" id="sv-complexity">0/25</span>
+                </div>
+                <div class="score-row" data-key="uniqueness">
+                  <span class="score-row-label">Uniqueness</span>
+                  <div class="score-mini-bar"><div class="score-mini-fill" id="sb-uniqueness" style="width:0%"></div></div>
+                  <span class="score-row-val" id="sv-uniqueness">0/20</span>
+                </div>
+                <div class="score-row" data-key="predictability">
+                  <span class="score-row-label">Predictability</span>
+                  <div class="score-mini-bar"><div class="score-mini-fill" id="sb-predictability" style="width:0%"></div></div>
+                  <span class="score-row-val" id="sv-predictability">0/20</span>
+                </div>
+                <div class="score-row" data-key="entropy">
+                  <span class="score-row-label">Entropy</span>
+                  <div class="score-mini-bar"><div class="score-mini-fill" id="sb-entropy" style="width:0%"></div></div>
+                  <span class="score-row-val" id="sv-entropy">0/10</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Crack Time -->
+          <div class="crack-zone">
+            <div class="zone-header">// CRACK TIME ESTIMATION</div>
+            <div class="crack-grid">
+              <div class="crack-card">
+                <div class="crack-icon">🔓</div>
+                <div class="crack-label">CASUAL ATTACKER</div>
+                <div class="crack-time" id="ct-casual">—</div>
+                <div class="crack-sub">1K guesses/sec</div>
+              </div>
+              <div class="crack-card">
+                <div class="crack-icon">⚡</div>
+                <div class="crack-label">GPU ATTACK</div>
+                <div class="crack-time" id="ct-gpu">—</div>
+                <div class="crack-sub">10B guesses/sec</div>
+              </div>
+              <div class="crack-card">
+                <div class="crack-icon">🌐</div>
+                <div class="crack-label">BOTNET</div>
+                <div class="crack-time" id="ct-botnet">—</div>
+                <div class="crack-sub">100B guesses/sec</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Password Heatmap -->
+          <div class="heatmap-zone" id="heatmapZone">
+            <div class="zone-header">// PASSWORD HEATMAP</div>
+            <div class="heatmap-display" id="heatmapDisplay">
+              <span class="heatmap-idle">No password entered</span>
+            </div>
+            <div class="heatmap-legend">
+              <span class="legend-item"><span class="heat-dot normal"></span>Safe</span>
+              <span class="legend-item"><span class="heat-dot warm"></span>Weak</span>
+              <span class="legend-item"><span class="heat-dot hot"></span>Danger</span>
+            </div>
+          </div>
+
+          <!-- Feedback Panel -->
+          <div class="feedback-zone">
+            <div class="zone-header">// SECURITY FEEDBACK</div>
+            <div id="feedbackList" class="feedback-list">
+              <div class="feedback-idle">Begin typing to receive threat intelligence...</div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- RIGHT PANEL -->
+        <div class="side-panel right-panel">
+          <div class="panel-header">// TERMINAL</div>
+          <div class="terminal-window">
+            <div class="terminal-header-bar">
+              <span class="t-dot red"></span>
+              <span class="t-dot yellow"></span>
+              <span class="t-dot green"></span>
+              <span class="t-title">pat_analysis.sh</span>
+            </div>
+            <div id="terminalOutput" class="terminal-output">
+              <div class="t-line">> PAT v1.0 initialized</div>
+              <div class="t-line">> Security modules loaded</div>
+              <div class="t-line">> Awaiting target password...<span class="cursor-blink">█</span></div>
+            </div>
+          </div>
+
+          <div class="panel-header" style="margin-top:16px">// BREACH STATUS</div>
+          <div id="breachResult" class="breach-panel idle">
+            <div class="breach-icon">🔍</div>
+            <div class="breach-text">Not checked yet.<br/>Click "CHECK BREACH"</div>
+          </div>
+
+          <div class="panel-header" style="margin-top:16px">// HACKER SIM</div>
+          <div class="hacker-sim-panel">
+            <button class="sim-btn" onclick="runHackerSim()">▶ RUN SIMULATION</button>
+            <div id="hackerSimOutput" class="hacker-sim-output">
+              <span class="sim-idle">Simulation ready...</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ========== GENERATOR TAB ========== -->
+    <div id="tab-generator" class="tab-content">
+      <div class="generator-layout">
+        <div class="generator-panel">
+          <div class="gen-header">// SECURE PASSWORD GENERATOR</div>
+
+          <div class="gen-output-zone">
+            <div class="gen-password-display" id="genPasswordDisplay">
+              <span class="gen-placeholder">Click Generate to create a password</span>
+            </div>
+            <div class="gen-actions">
+              <button class="gen-copy-btn" onclick="copyGenerated()">⎘ COPY</button>
+              <button class="gen-use-btn" onclick="useGenerated()">⇒ ANALYZE</button>
+            </div>
+          </div>
+
+          <div class="gen-controls">
+            <div class="gen-control-row">
+              <label class="gen-label">LENGTH: <span id="lengthVal">16</span></label>
+              <input type="range" id="lengthSlider" class="gen-slider" min="8" max="64" value="16" oninput="updateLength(this.value)" />
+            </div>
+
+            <div class="gen-toggles">
+              <label class="gen-toggle">
+                <input type="checkbox" id="toggleUpper" checked />
+                <span class="toggle-track"></span>
+                <span class="toggle-text">UPPERCASE</span>
+              </label>
+              <label class="gen-toggle">
+                <input type="checkbox" id="toggleNumbers" checked />
+                <span class="toggle-track"></span>
+                <span class="toggle-text">NUMBERS</span>
+              </label>
+              <label class="gen-toggle">
+                <input type="checkbox" id="toggleSymbols" checked />
+                <span class="toggle-track"></span>
+                <span class="toggle-text">SYMBOLS</span>
+              </label>
+              <label class="gen-toggle">
+                <input type="checkbox" id="toggleMemorable" />
+                <span class="toggle-track"></span>
+                <span class="toggle-text">MEMORABLE PASSPHRASE</span>
+              </label>
+            </div>
+
+            <button class="generate-btn" onclick="generatePassword()">
+              <span>⟳ GENERATE SECURE PASSWORD</span>
+            </button>
+          </div>
+
+          <div id="genAnalysis" class="gen-analysis" style="display:none">
+            <div class="gen-analysis-header">// GENERATED PASSWORD ANALYSIS</div>
+            <div id="genAnalysisContent"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== EDUCATION / INTEL TAB ========== -->
+    <div id="tab-education" class="tab-content">
+      <div class="intel-layout">
+        <div class="intel-header">// SECURITY INTELLIGENCE BRIEFING</div>
+        <div class="intel-grid">
+
+          <div class="intel-card">
+            <div class="intel-card-icon">🔑</div>
+            <div class="intel-card-title">USE PASSPHRASES</div>
+            <div class="intel-card-body">A string of 4+ random words (e.g. "Cobalt-Nexus-Forge-421") is both memorable and highly secure — often stronger than complex 8-char passwords. Each word adds ~13 bits of entropy.</div>
+          </div>
+
+          <div class="intel-card">
+            <div class="intel-card-icon">🛡</div>
+            <div class="intel-card-title">ENABLE MFA EVERYWHERE</div>
+            <div class="intel-card-body">Multi-Factor Authentication stops 99.9% of automated attacks even if your password is leaked. Use an authenticator app (not SMS) for maximum security.</div>
+          </div>
+
+          <div class="intel-card">
+            <div class="intel-card-icon">🔒</div>
+            <div class="intel-card-title">UNIQUE PASSWORDS PER SITE</div>
+            <div class="intel-card-body">If one site is breached and you reuse passwords, attackers use "credential stuffing" to access all your accounts. Use a password manager to handle unique passwords.</div>
+          </div>
+
+          <div class="intel-card">
+            <div class="intel-card-icon">⚠</div>
+            <div class="intel-card-title">AVOID PERSONAL INFO</div>
+            <div class="intel-card-body">Birthdays, names, pet names, and phone numbers are the first things targeted in personalized attacks (OSINT attacks). Never use information that can be researched about you.</div>
+          </div>
+
+          <div class="intel-card">
+            <div class="intel-card-icon">📦</div>
+            <div class="intel-card-title">USE A PASSWORD MANAGER</div>
+            <div class="intel-card-body">Tools like Bitwarden, 1Password, or KeePass let you generate and store unique 20+ character passwords for every account without memorizing them.</div>
+          </div>
+
+          <div class="intel-card">
+            <div class="intel-card-icon">🔄</div>
+            <div class="intel-card-title">CHANGE BREACHED PASSWORDS</div>
+            <div class="intel-card-body">Regularly check HaveIBeenPwned.com. If your email appears in a breach, change all passwords for that service and any account using the same password immediately.</div>
+          </div>
+
+          <div class="intel-card">
+            <div class="intel-card-icon">🎯</div>
+            <div class="intel-card-title">LENGTH BEATS COMPLEXITY</div>
+            <div class="intel-card-body">A 20-character lowercase password can be stronger than an 8-character mixed one. Each additional character multiplies the search space exponentially — length is your best defense.</div>
+          </div>
+
+          <div class="intel-card">
+            <div class="intel-card-icon">🕵</div>
+            <div class="intel-card-title">BEWARE PHISHING</div>
+            <div class="intel-card-body">No password strength protects against phishing. Always verify URLs before entering credentials. Attackers clone legitimate login pages to steal passwords in real time.</div>
+          </div>
+
+        </div>
+
+        <div class="entropy-guide">
+          <div class="intel-header">// ENTROPY REFERENCE GUIDE</div>
+          <div class="entropy-table">
+            <div class="et-row header"><span>Entropy</span><span>Strength</span><span>Example Type</span></div>
+            <div class="et-row critical"><span>&lt; 28 bits</span><span>CRITICAL</span><span>6-char lowercase</span></div>
+            <div class="et-row weak"><span>28–36 bits</span><span>WEAK</span><span>8-char lowercase</span></div>
+            <div class="et-row moderate"><span>36–60 bits</span><span>MODERATE</span><span>10-char mixed</span></div>
+            <div class="et-row strong"><span>60–80 bits</span><span>STRONG</span><span>14-char mixed + symbols</span></div>
+            <div class="et-row vstrong"><span>80–128 bits</span><span>VERY STRONG</span><span>20-char full mix</span></div>
+            <div class="et-row exceptional"><span>128+ bits</span><span>EXCEPTIONAL</span><span>Long passphrase / 30+ chars</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- end dashboard -->
+
+  <!-- Toast notification -->
+  <div id="toast" class="toast"></div>
+
+  <script src="/static/script.js"></script>
+</body>
+</html>
